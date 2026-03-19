@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../models/playlist.dart';
 import '../models/playback_strategy.dart';
 import '../providers/app_provider.dart';
@@ -92,6 +94,20 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
                   ],
                 ),
               ),
+              // Add files button
+              IconButton.filled(
+                icon: const Icon(Icons.folder_open),
+                onPressed: () => _showAddFilesDialog(context, appProvider),
+                tooltip: '添加文件',
+              ),
+              const SizedBox(width: 8),
+              // Add folder button
+              IconButton.filled(
+                icon: const Icon(Icons.folder),
+                onPressed: () => _showAddFolderDialog(context, appProvider),
+                tooltip: '添加文件夹',
+              ),
+              const SizedBox(width: 8),
               // Play button
               IconButton.filled(
                 icon: Icon(audioService.isPlaying && 
@@ -333,6 +349,67 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('请在左侧导航栏选择"播放策略"进行管理')),
     );
+  }
+
+  /// Show dialog to select multiple MP3 files
+  Future<void> _showAddFilesDialog(BuildContext context, AppProvider appProvider) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp3'],
+      allowMultiple: true,
+    );
+
+    if (result != null && result.paths.isNotEmpty) {
+      final validPaths = result.paths.where((path) => path != null).cast<String>().toList();
+      if (validPaths.isNotEmpty && widget.playlist.id != null) {
+        await appProvider.addTracksToPlaylist(widget.playlist.id, validPaths);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('已添加 ${validPaths.length} 首歌曲到 ${widget.playlist.name}')),
+          );
+        }
+      }
+    }
+  }
+
+  /// Show dialog to select a folder and add all MP3 files from it
+  Future<void> _showAddFolderDialog(BuildContext context, AppProvider appProvider) async {
+    final directoryPath = await FilePicker.platform.getDirectoryPath();
+
+    if (directoryPath != null && widget.playlist.id != null) {
+      try {
+        final directory = Directory(directoryPath);
+        final mp3Files = <String>[];
+        
+        // Recursively find all MP3 files in the directory
+        await for (final entity in directory.list(recursive: true, followLinks: false)) {
+          if (entity is File && entity.path.toLowerCase().endsWith('.mp3')) {
+            mp3Files.add(entity.path);
+          }
+        }
+
+        if (mp3Files.isNotEmpty) {
+          await appProvider.addTracksToPlaylist(widget.playlist.id, mp3Files);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('已从文件夹添加 ${mp3Files.length} 首歌曲到 ${widget.playlist.name}')),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('该文件夹中没有 MP3 文件')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('读取文件夹失败：$e')),
+          );
+        }
+      }
+    }
   }
 }
 

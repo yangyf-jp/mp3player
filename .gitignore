@@ -1,45 +1,32 @@
 ```
-# Flutter/Dart
-.dart_tool/
-.build/
-packages/
-*.nib
-local.properties
-project.xcworkspace
-xcuserdata/
-DerivedData/
-Podfile.lock
-Flutter/ephemeral/
-ios/Pods/
-ios/.symlinks/
-macos/Pods/
-macos/.symlinks/
-windows/Flutter/flutter_windows.dll
-linux/Flutter/flutter_linux.so
-android/.gradle/
-android/local.properties
-**/android/**/gradle-wrapper.properties
-**/android/build/
-
-# Build outputs
+# Build artifacts
 build/
-**/build/
+dist/
+
+# Dependencies
+node_modules/
+.pub-cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Logs
-*.log
-**/logs/
+# Coverage
+coverage/
+htmlcov/
 
-# VS Code
-.vscode/
-
-# macOS
+# Temporary files
+*.tmp
 .DS_Store
-
-# Windows
 Thumbs.db
 ```
