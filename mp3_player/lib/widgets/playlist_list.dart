@@ -61,6 +61,7 @@ class PlaylistListWidget extends StatelessWidget {
                     onTap: () => appProvider.selectPlaylist(playlist),
                     onEdit: () => _showEditPlaylistDialog(context, appProvider, playlist),
                     onDelete: () => _confirmDeletePlaylist(context, appProvider, playlist),
+                    index: index,
                   );
                 },
               ),
@@ -246,6 +247,7 @@ class PlaylistTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final int index;
 
   const PlaylistTile({
     super.key,
@@ -254,6 +256,7 @@ class PlaylistTile extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    required this.index,
   });
 
   @override
@@ -267,7 +270,7 @@ class PlaylistTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: ReorderableDragStartListener(
-          index: playlist.orderIndex,
+          index: index,
           child: Icon(
             playlist.isSpecial ? Icons.star : Icons.drag_handle,
             color: playlist.isSpecial ? Colors.amber : (isSelected ? Colors.blue[400] : Colors.grey[400]),

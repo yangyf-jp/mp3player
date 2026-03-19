@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:drag_and_drop_files/drag_and_drop_files.dart';
 import 'dart:io';
 import '../models/playlist.dart';
 import '../providers/app_provider.dart';
@@ -391,43 +390,28 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
         if (appProvider.selectedPlaylist == null) {
           return _buildEmptyState();
         }
-        return DragAndDropFiles(
-          onDragDone: (details) async {
-            final filePaths = <String>[];
-            for (final file in details.files) {
-              final path = file.path;
-              if (path != null) {
-                // Check if it's a directory
-                final entity = File(path);
-                if (!await entity.exists()) {
-                  // Try as directory
-                  final dir = Directory(path);
-                  if (await dir.exists()) {
-                    // It's a directory, get all mp3 files
-                    await for (final entry in dir.list(recursive: true)) {
-                      if (entry.path.toLowerCase().endsWith('.mp3')) {
-                        filePaths.add(entry.path);
-                      }
-                    }
-                  }
-                } else if (path.toLowerCase().endsWith('.mp3')) {
-                  // It's an mp3 file
-                  filePaths.add(path);
-                }
-              }
-            }
-            if (filePaths.isNotEmpty && appProvider.selectedPlaylist != null) {
-              appProvider.addTracksToPlaylist(
-                appProvider.selectedPlaylist!.id,
-                filePaths,
-              );
-            }
-          },
-          dragWidgetBackgroundColor: Colors.blue.withOpacity(0.2),
-          child: Container(
-            color: Colors.transparent,
-            child: PlaylistDetailContent(),
-          ),
+        return _buildDragDropArea(appProvider);
+      },
+    );
+  }
+
+  Widget _buildDragDropArea(AppProvider appProvider) {
+    return DragTarget<List<String>>(
+      onWillAccept: (data) => true,
+      onAccept: (filePaths) {
+        if (filePaths.isNotEmpty && appProvider.selectedPlaylist != null) {
+          appProvider.addTracksToPlaylist(
+            appProvider.selectedPlaylist!.id,
+            filePaths,
+          );
+        }
+      },
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          color: candidateData.isNotEmpty 
+              ? Colors.blue.withOpacity(0.2) 
+              : Colors.transparent,
+          child: PlaylistDetailContent(),
         );
       },
     );

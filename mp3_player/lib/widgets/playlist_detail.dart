@@ -200,6 +200,7 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
         return TrackTile(
           key: ValueKey(track.id),
           track: track,
+          index: index,
           isCurrentTrack: isCurrentTrack,
           isPlaying: isCurrentTrack && widget.isPlaying,
           onTap: () => _playTrack(track, index, audioService),
@@ -338,6 +339,7 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
 /// Individual track tile
 class TrackTile extends StatelessWidget {
   final PlaylistTrack track;
+  final int index;
   final bool isCurrentTrack;
   final bool isPlaying;
   final VoidCallback onTap;
@@ -347,6 +349,7 @@ class TrackTile extends StatelessWidget {
   const TrackTile({
     super.key,
     required this.track,
+    required this.index,
     this.isCurrentTrack = false,
     this.isPlaying = false,
     required this.onTap,
@@ -365,7 +368,7 @@ class TrackTile extends StatelessWidget {
       ),
       child: ListTile(
         leading: ReorderableDragStartListener(
-          index: track.orderIndex,
+          index: index,
           child: Icon(
             isCurrentTrack && isPlaying
                 ? Icons.equalizer
