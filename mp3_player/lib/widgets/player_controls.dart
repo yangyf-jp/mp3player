@@ -83,7 +83,7 @@ class PlayerControlsBar extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (currentTrack.artist != null)
+        if (currentTrack.artist != null && currentTrack.artist!.isNotEmpty)
           Text(
             currentTrack.artist!,
             style: TextStyle(color: Colors.grey[500], fontSize: 14),

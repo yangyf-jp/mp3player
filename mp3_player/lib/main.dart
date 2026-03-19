@@ -12,11 +12,11 @@ void main() async {
   final dbService = DatabaseService();
   await dbService.database;
   
-  runApp(const Mp3PlayerApp());
+  runApp(Mp3PlayerApp());
 }
 
 class Mp3PlayerApp extends StatelessWidget {
-  const Mp3PlayerApp({super.key});
+  Mp3PlayerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class Mp3PlayerApp extends StatelessWidget {
             backgroundColor: Colors.grey[900],
             elevation: 0,
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             color: Colors.grey[850],
             elevation: 4,
             shape: RoundedRectangleBorder(
@@ -77,7 +77,7 @@ class Mp3PlayerApp extends StatelessWidget {
             labelStyle: TextStyle(color: Colors.grey[400]),
             hintStyle: TextStyle(color: Colors.grey[500]),
           ),
-          dialogTheme: DialogTheme(
+          dialogTheme: DialogThemeData(
             backgroundColor: Colors.grey[850],
             titleTextStyle: const TextStyle(
               color: Colors.white,
@@ -104,17 +104,17 @@ class Mp3PlayerApp extends StatelessWidget {
           iconTheme: IconThemeData(
             color: Colors.grey[400],
           ),
-          textTheme: const TextTheme(
-            headlineLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            headlineMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            bodyLarge: TextStyle(color: Colors.white),
+          textTheme: TextTheme(
+            headlineLarge: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            headlineMedium: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            titleLarge: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            bodyLarge: const TextStyle(color: Colors.white),
             bodyMedium: TextStyle(color: Colors.grey[300]),
-            labelLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+            labelLarge: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
           ),
           useMaterial3: true,
         ),
-        home: const HomeScreen(),
+        home: HomeScreen(),
       ),
     );
   }

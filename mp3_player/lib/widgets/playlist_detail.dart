@@ -135,7 +135,7 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
     AudioPlayerService audioService,
   ) {
     return FutureBuilder<List<PlaybackStrategy>>(
-      future: appProvider._dbService.getAllPlaybackStrategies(),
+      future: appProvider.dbService.getAllPlaybackStrategies(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const CircularProgressIndicator.adaptive();
@@ -278,6 +278,7 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
 
   void _showAddToSpecialDialog(BuildContext context, PlaylistTrack track) {
     final appProvider = context.read<AppProvider>();
+    final audioService = context.read<AudioPlayerService>();
     final specialPlaylists = appProvider.specialPlaylists;
 
     if (specialPlaylists.isEmpty) {

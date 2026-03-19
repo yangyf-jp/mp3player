@@ -8,7 +8,7 @@ import '../services/audio_player_service.dart';
 
 /// Main application state provider
 class AppProvider extends ChangeNotifier {
-  final DatabaseService _dbService = DatabaseService();
+  final DatabaseService dbService = DatabaseService();
   final Uuid _uuid = const Uuid();
 
   List<Playlist> _playlists = [];
@@ -54,11 +54,11 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> _loadPlaylists() async {
-    _playlists = await _dbService.getAllPlaylists();
+    _playlists = await dbService.getAllPlaylists();
   }
 
   Future<void> _loadStrategies() async {
-    _strategies = await _dbService.getAllPlaybackStrategies();
+    _strategies = await dbService.getAllPlaybackStrategies();
   }
 
   // ==================== Playlist Management ====================
@@ -79,14 +79,14 @@ class AppProvider extends ChangeNotifier {
       orderIndex: _playlists.length,
     );
 
-    await _dbService.createPlaylist(playlist);
+    await dbService.createPlaylist(playlist);
     await _loadPlaylists();
     notifyListeners();
   }
 
   /// Update playlist
   Future<void> updatePlaylist(Playlist playlist) async {
-    await _dbService.updatePlaylist(playlist);
+    await dbService.updatePlaylist(playlist);
     await _loadPlaylists();
     if (_selectedPlaylist?.id == playlist.id) {
       _selectedPlaylist = playlist;
@@ -101,7 +101,7 @@ class AppProvider extends ChangeNotifier {
       _selectedPlaylist = null;
     }
     
-    await _dbService.deletePlaylist(playlistId);
+    await dbService.deletePlaylist(playlistId);
     await _loadPlaylists();
     notifyListeners();
   }
@@ -114,7 +114,7 @@ class AppProvider extends ChangeNotifier {
 
   /// Reorder playlists
   Future<void> reorderPlaylists(List<String> playlistIds) async {
-    await _dbService.reorderPlaylists(playlistIds);
+    await dbService.reorderPlaylists(playlistIds);
     await _loadPlaylists();
     notifyListeners();
   }
@@ -126,7 +126,7 @@ class AppProvider extends ChangeNotifier {
     String playlistId,
     List<String> filePaths,
   ) async {
-    final existingTracks = await _dbService.getTracksByPlaylistId(playlistId);
+    final existingTracks = await dbService.getTracksByPlaylistId(playlistId);
     final existingPaths = existingTracks.map((t) => t.filePath).toSet();
     
     int orderIndex = existingTracks.length;
@@ -141,7 +141,7 @@ class AppProvider extends ChangeNotifier {
           fileName: fileName,
           orderIndex: orderIndex++,
         );
-        await _dbService.addTrackToPlaylist(track);
+        await dbService.addTrackToPlaylist(track);
       }
     }
     
@@ -150,13 +150,13 @@ class AppProvider extends ChangeNotifier {
 
   /// Remove track from playlist
   Future<void> removeTrackFromPlaylist(String trackId) async {
-    await _dbService.removeTrackFromPlaylist(trackId);
+    await dbService.removeTrackFromPlaylist(trackId);
     notifyListeners();
   }
 
   /// Reorder tracks in playlist
   Future<void> reorderTracks(String playlistId, List<String> trackIds) async {
-    await _dbService.reorderTracks(playlistId, trackIds);
+    await dbService.reorderTracks(playlistId, trackIds);
     notifyListeners();
   }
 
@@ -179,21 +179,21 @@ class AppProvider extends ChangeNotifier {
       playControl: playControl,
     );
 
-    await _dbService.createPlaybackStrategy(strategy);
+    await dbService.createPlaybackStrategy(strategy);
     await _loadStrategies();
     notifyListeners();
   }
 
   /// Update playback strategy
   Future<void> updatePlaybackStrategy(PlaybackStrategy strategy) async {
-    await _dbService.updatePlaybackStrategy(strategy);
+    await dbService.updatePlaybackStrategy(strategy);
     await _loadStrategies();
     notifyListeners();
   }
 
   /// Delete playback strategy
   Future<void> deletePlaybackStrategy(String strategyId) async {
-    final result = await _dbService.deletePlaybackStrategy(strategyId);
+    final result = await dbService.deletePlaybackStrategy(strategyId);
     if (result == -1) {
       throw Exception('无法删除正在使用的播放策略');
     }

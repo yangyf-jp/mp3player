@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import '../models/playlist.dart';
 import '../providers/app_provider.dart';
 import '../services/audio_player_service.dart';
 import '../widgets/playlist_list.dart';
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: IndexedStack(
                     index: _selectedPageIndex,
-                    children: const [
+                    children: [
                       PlaylistDetailView(),
                       StrategyManagerView(),
                     ],
@@ -161,7 +162,7 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
               color: candidateData.isNotEmpty 
                   ? Colors.blue.withOpacity(0.1) 
                   : Colors.transparent,
-              child: const PlaylistDetailContent(),
+              child: PlaylistDetailContent(),
             );
           },
         );
@@ -214,8 +215,8 @@ class PlaylistDetailContent extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return FutureBuilder(
-          future: appProvider._dbService.getTracksByPlaylistId(playlist.id),
+        return FutureBuilder<List<PlaylistTrack>>(
+          future: appProvider.dbService.getTracksByPlaylistId(playlist.id),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
