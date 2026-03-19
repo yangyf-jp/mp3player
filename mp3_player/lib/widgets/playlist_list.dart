@@ -239,7 +239,7 @@ class PlaylistListWidget extends StatelessWidget {
   }
 }
 
-/// Individual playlist tile
+/// Individual playlist tile with drag handle for reordering
 class PlaylistTile extends StatelessWidget {
   final Playlist playlist;
   final bool isSelected;
@@ -266,9 +266,12 @@ class PlaylistTile extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        leading: Icon(
-          playlist.isSpecial ? Icons.star : Icons.music_note,
-          color: playlist.isSpecial ? Colors.amber : (isSelected ? Colors.blue[400] : Colors.grey[400]),
+        leading: ReorderableDragStartListener(
+          index: playlist.orderIndex,
+          child: Icon(
+            playlist.isSpecial ? Icons.star : Icons.drag_handle,
+            color: playlist.isSpecial ? Colors.amber : (isSelected ? Colors.blue[400] : Colors.grey[400]),
+          ),
         ),
         title: Text(
           playlist.name,

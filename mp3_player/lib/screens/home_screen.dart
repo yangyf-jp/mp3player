@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:drag_and_drop_files/drag_and_drop_files.dart';
+import 'dart:io';
 import '../models/playlist.dart';
 import '../providers/app_provider.dart';
 import '../services/audio_player_service.dart';
@@ -36,8 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: IndexedStack(
                     index: _selectedPageIndex,
                     children: [
-                      PlaylistDetailView(),
-                      StrategyManagerView(),
+                      const PlaylistDetailView(),
+                      const StrategyManagerView(),
                     ],
                   ),
                 ),
@@ -45,6 +47,173 @@ class _HomeScreenState extends State<HomeScreen> {
                 const PlayerControlsBar(),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreatePlaylistDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+    bool isSpecial = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('新建播放列表'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '播放列表名称',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(
+                  labelText: '备注 (可选)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('特殊播放列表'),
+                subtitle: const Text('特殊播放列表可在添加曲目时快速选择'),
+                value: isSpecial,
+                onChanged: (value) {
+                  setDialogState(() => isSpecial = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.trim().isNotEmpty) {
+                  context.read<AppProvider>().createPlaylist(
+                    name: nameController.text.trim(),
+                    description: descController.text.trim().isEmpty 
+                        ? null 
+                        : descController.text.trim(),
+                    isSpecial: isSpecial,
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('创建'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditPlaylistDialog(
+    BuildContext context,
+    AppProvider appProvider,
+    Playlist playlist,
+  ) {
+    final nameController = TextEditingController(text: playlist.name);
+    final descController = TextEditingController(text: playlist.description ?? '');
+    bool isSpecial = playlist.isSpecial;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('编辑播放列表'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '播放列表名称',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(
+                  labelText: '备注',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('特殊播放列表'),
+                value: isSpecial,
+                onChanged: (value) {
+                  setDialogState(() => isSpecial = value);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.trim().isNotEmpty) {
+                  appProvider.updatePlaylist(
+                    playlist.copyWith(
+                      name: nameController.text.trim(),
+                      description: descController.text.trim().isEmpty 
+                          ? null 
+                          : descController.text.trim(),
+                      isSpecial: isSpecial,
+                    ),
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeletePlaylist(
+    BuildContext context,
+    AppProvider appProvider,
+    Playlist playlist,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认删除'),
+        content: Text('确定要删除播放列表 "${playlist.name}" 吗？\n此操作不可恢复。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              appProvider.deletePlaylist(playlist.id);
+              Navigator.pop(context);
+            },
+            child: const Text('删除'),
           ),
         ],
       ),
@@ -85,10 +254,85 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Divider(color: Colors.white24),
+          // Playlist list section
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with add button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    children: [
+                      const Text(
+                        '播放列表',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline, size: 18),
+                        color: Colors.blue[400],
+                        tooltip: '新建播放列表',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        onPressed: () => _showCreatePlaylistDialog(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white24, height: 1),
+                // Playlist items
+                Expanded(
+                  child: Consumer<AppProvider>(
+                    builder: (context, appProvider, child) {
+                      if (appProvider.playlists.isEmpty) {
+                        return Center(
+                          child: Text(
+                            '暂无播放列表\n点击 + 新建',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          ),
+                        );
+                      }
+                      return ReorderableListView.builder(
+                        itemCount: appProvider.playlists.length,
+                        onReorder: (oldIndex, newIndex) {
+                          if (newIndex > oldIndex) {
+                            newIndex -= 1;
+                          }
+                          final updatedList = List<Playlist>.from(appProvider.playlists);
+                          final item = updatedList.removeAt(oldIndex);
+                          updatedList.insert(newIndex, item);
+                          appProvider.reorderPlaylists(updatedList.map((p) => p.id).toList());
+                        },
+                        itemBuilder: (context, index) {
+                          final playlist = appProvider.playlists[index];
+                          return PlaylistTile(
+                            key: ValueKey(playlist.id),
+                            playlist: playlist,
+                            isSelected: appProvider.selectedPlaylist?.id == playlist.id,
+                            onTap: () => appProvider.selectPlaylist(playlist),
+                            onEdit: () => _showEditPlaylistDialog(context, appProvider, playlist),
+                            onDelete: () => _confirmDeletePlaylist(context, appProvider, playlist),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white24),
           // Navigation items
-          _buildNavItem(0, Icons.list, '播放列表'),
+          _buildNavItem(0, Icons.list, '播放列表详情'),
           _buildNavItem(1, Icons.settings, '播放策略'),
-          const Spacer(),
+          const Divider(color: Colors.white24),
           // Drag and drop hint
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -97,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey[500],
-                fontSize: 12,
+                fontSize: 11,
               ),
             ),
           ),
@@ -147,24 +391,43 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
         if (appProvider.selectedPlaylist == null) {
           return _buildEmptyState();
         }
-        return DragTarget<List<String>>(
-          onWillAccept: (data) => true,
-          onAccept: (filePaths) {
-            if (appProvider.selectedPlaylist != null) {
+        return DragAndDropFiles(
+          onDragDone: (details) async {
+            final filePaths = <String>[];
+            for (final file in details.files) {
+              final path = file.path;
+              if (path != null) {
+                // Check if it's a directory
+                final entity = File(path);
+                if (!await entity.exists()) {
+                  // Try as directory
+                  final dir = Directory(path);
+                  if (await dir.exists()) {
+                    // It's a directory, get all mp3 files
+                    await for (final entry in dir.list(recursive: true)) {
+                      if (entry.path.toLowerCase().endsWith('.mp3')) {
+                        filePaths.add(entry.path);
+                      }
+                    }
+                  }
+                } else if (path.toLowerCase().endsWith('.mp3')) {
+                  // It's an mp3 file
+                  filePaths.add(path);
+                }
+              }
+            }
+            if (filePaths.isNotEmpty && appProvider.selectedPlaylist != null) {
               appProvider.addTracksToPlaylist(
                 appProvider.selectedPlaylist!.id,
                 filePaths,
               );
             }
           },
-          builder: (context, candidateData, rejectedData) {
-            return Container(
-              color: candidateData.isNotEmpty 
-                  ? Colors.blue.withOpacity(0.1) 
-                  : Colors.transparent,
-              child: PlaylistDetailContent(),
-            );
-          },
+          dragWidgetBackgroundColor: Colors.blue.withOpacity(0.2),
+          child: Container(
+            color: Colors.transparent,
+            child: PlaylistDetailContent(),
+          ),
         );
       },
     );

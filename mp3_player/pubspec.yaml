@@ -28,6 +28,7 @@ dependencies:
   
   # File Handling
   file_picker: ^6.1.1
+  drag_and_drop_files: ^0.0.5
   
   # UUID for unique IDs
   uuid: ^4.2.1
