@@ -450,13 +450,18 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
 }
 
 /// Content of playlist detail with track list
-class PlaylistDetailContent extends StatelessWidget {
+class PlaylistDetailContent extends StatefulWidget {
   const PlaylistDetailContent({super.key});
 
   @override
+  State<PlaylistDetailContent> createState() => _PlaylistDetailContentState();
+}
+
+class _PlaylistDetailContentState extends State<PlaylistDetailContent> {
+  @override
   Widget build(BuildContext context) {
-    return Consumer2<AppProvider, AudioPlayerService>(
-      builder: (context, appProvider, audioService, child) {
+    return Consumer<AppProvider>(
+      builder: (context, appProvider, child) {
         final playlist = appProvider.selectedPlaylist;
         if (playlist == null) {
           return const SizedBox.shrink();
@@ -478,11 +483,16 @@ class PlaylistDetailContent extends StatelessWidget {
               );
             }
 
-            return PlaylistDetailWidget(
-              playlist: playlist,
-              tracks: snapshot.data!,
-              currentTrackId: audioService.currentTrack?.id,
-              isPlaying: audioService.isPlaying,
+            // Use Selector to only rebuild when currentTrack changes
+            return Consumer<AudioPlayerService>(
+              builder: (context, audioService, child) {
+                return PlaylistDetailWidget(
+                  playlist: playlist,
+                  tracks: snapshot.data!,
+                  currentTrackId: audioService.currentTrack?.id,
+                  isPlaying: audioService.isPlaying,
+                );
+              },
             );
           },
         );

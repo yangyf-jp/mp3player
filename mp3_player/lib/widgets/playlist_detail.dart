@@ -216,7 +216,7 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
         return TrackTile(
           key: ValueKey(track.id),
           track: track,
-          index: index,
+          index: index + 1, // Fix: ensure index is passed correctly
           isCurrentTrack: isCurrentTrack,
           isPlaying: isCurrentTrack && widget.isPlaying,
           onTap: () => _playTrack(track, index, audioService),
