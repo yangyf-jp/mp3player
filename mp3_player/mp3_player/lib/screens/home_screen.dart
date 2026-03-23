@@ -318,6 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => appProvider.selectPlaylist(playlist),
                             onEdit: () => _showEditPlaylistDialog(context, appProvider, playlist),
                             onDelete: () => _confirmDeletePlaylist(context, appProvider, playlist),
+                            index: index,
                           );
                         },
                       );
@@ -483,16 +484,10 @@ class _PlaylistDetailContentState extends State<PlaylistDetailContent> {
               );
             }
 
-            // Use Selector to only rebuild when currentTrack changes
-            return Consumer<AudioPlayerService>(
-              builder: (context, audioService, child) {
-                return PlaylistDetailWidget(
-                  playlist: playlist,
-                  tracks: snapshot.data!,
-                  currentTrackId: audioService.currentTrack?.id,
-                  isPlaying: audioService.isPlaying,
-                );
-              },
+            // Only pass necessary data to avoid excessive rebuilds
+            return PlaylistDetailWidget(
+              playlist: playlist,
+              tracks: snapshot.data!,
             );
           },
         );
