@@ -318,6 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => appProvider.selectPlaylist(playlist),
                             onEdit: () => _showEditPlaylistDialog(context, appProvider, playlist),
                             onDelete: () => _confirmDeletePlaylist(context, appProvider, playlist),
+                            index: index,
                           );
                         },
                       );
@@ -450,13 +451,18 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
 }
 
 /// Content of playlist detail with track list
-class PlaylistDetailContent extends StatelessWidget {
+class PlaylistDetailContent extends StatefulWidget {
   const PlaylistDetailContent({super.key});
 
   @override
+  State<PlaylistDetailContent> createState() => _PlaylistDetailContentState();
+}
+
+class _PlaylistDetailContentState extends State<PlaylistDetailContent> {
+  @override
   Widget build(BuildContext context) {
-    return Consumer2<AppProvider, AudioPlayerService>(
-      builder: (context, appProvider, audioService, child) {
+    return Consumer<AppProvider>(
+      builder: (context, appProvider, child) {
         final playlist = appProvider.selectedPlaylist;
         if (playlist == null) {
           return const SizedBox.shrink();
@@ -478,11 +484,10 @@ class PlaylistDetailContent extends StatelessWidget {
               );
             }
 
+            // Only pass necessary data to avoid excessive rebuilds
             return PlaylistDetailWidget(
               playlist: playlist,
               tracks: snapshot.data!,
-              currentTrackId: audioService.currentTrack?.id,
-              isPlaying: audioService.isPlaying,
             );
           },
         );

@@ -11,15 +11,11 @@ import '../services/audio_player_service.dart';
 class PlaylistDetailWidget extends StatefulWidget {
   final Playlist playlist;
   final List<PlaylistTrack> tracks;
-  final String? currentTrackId;
-  final bool isPlaying;
 
   const PlaylistDetailWidget({
     super.key,
     required this.playlist,
     required this.tracks,
-    this.currentTrackId,
-    this.isPlaying = false,
   });
 
   @override
@@ -211,14 +207,15 @@ class _PlaylistDetailWidgetState extends State<PlaylistDetailWidget> {
       padding: const EdgeInsets.only(bottom: 16),
       itemBuilder: (context, index) {
         final track = widget.tracks[index];
-        final isCurrentTrack = track.id == widget.currentTrackId;
+        final isCurrentTrack = track.id == audioService.currentTrack?.id;
+        final isPlaying = isCurrentTrack && audioService.isPlaying;
         
         return TrackTile(
           key: ValueKey(track.id),
           track: track,
           index: index,
           isCurrentTrack: isCurrentTrack,
-          isPlaying: isCurrentTrack && widget.isPlaying,
+          isPlaying: isPlaying,
           onTap: () => _playTrack(track, index, audioService),
           onDelete: () => _confirmDeleteTrack(context, track),
           onAddToSpecial: () => _showAddToSpecialDialog(context, track),
