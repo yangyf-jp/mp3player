@@ -1,32 +1,28 @@
 ```
-# Build artifacts
-build/
-dist/
+# Compressed files
+*.tar.gz
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 
-# Dependencies
-node_modules/
-.pub-cache/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Coverage
-coverage/
-htmlcov/
-
-# Temporary files
-*.tmp
-.DS_Store
-Thumbs.db
+# MP3 player specific
+mp3_player_fixed.tar.gz
 ```
