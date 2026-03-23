@@ -397,7 +397,7 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
 
   Widget _buildDragDropArea(AppProvider appProvider) {
     return DragTarget<List<String>>(
-      onWillAccept: (data) => true,
+      onWillAcceptWithDetails: (details) => true,
       onAccept: (filePaths) {
         if (filePaths.isNotEmpty && appProvider.selectedPlaylist != null) {
           appProvider.addTracksToPlaylist(
@@ -411,7 +411,7 @@ class _PlaylistDetailViewState extends State<PlaylistDetailView> {
           color: candidateData.isNotEmpty 
               ? Colors.blue.withOpacity(0.2) 
               : Colors.transparent,
-          child: PlaylistDetailContent(),
+          child: const PlaylistDetailContent(),
         );
       },
     );

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:uuid/uuid.dart';
@@ -11,6 +12,7 @@ class AudioPlayerService extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final DatabaseService _dbService = DatabaseService();
   final Uuid _uuid = const Uuid();
+  final math.Random _random = math.Random();
 
   List<PlaylistTrack> _currentPlaylist = [];
   int _currentIndex = -1;
@@ -23,6 +25,7 @@ class AudioPlayerService extends ChangeNotifier {
   Duration _duration = Duration.zero;
   int _currentRepeatCount = 0;
   bool _isPlaylistFinished = false;
+  Set<int> _playedIndices = {}; // Track which indices have been played in shuffle mode
 
   // Getters
   AudioPlayer get audioPlayer => _audioPlayer;
@@ -77,6 +80,7 @@ class AudioPlayerService extends ChangeNotifier {
     _currentIndex = -1;
     _currentRepeatCount = 0;
     _isPlaylistFinished = false;
+    _playedIndices = {}; // Reset played indices when loading new playlist
     
     notifyListeners();
     
@@ -149,7 +153,7 @@ class AudioPlayerService extends ChangeNotifier {
     int nextIndex;
 
     if (_currentStrategy!.playbackMode == PlaybackMode.shuffle) {
-      // Random next track
+      // Random next track from remaining unplayed tracks
       nextIndex = _getRandomNextIndex();
     } else {
       // Sequential next track
@@ -160,6 +164,7 @@ class AudioPlayerService extends ChangeNotifier {
         if (_currentStrategy!.playControl == PlayControl.loopPlaylist) {
           // Loop back to start
           nextIndex = 0;
+          _playedIndices = {}; // Reset played indices when looping
         } else {
           // Playlist finished
           _isPlaylistFinished = true;
@@ -173,16 +178,32 @@ class AudioPlayerService extends ChangeNotifier {
     await _playTrackAt(nextIndex);
   }
 
-  /// Get random next index (not the current one)
+  /// Get random next index from remaining unplayed tracks
   int _getRandomNextIndex() {
     if (_currentPlaylist.length <= 1) return 0;
     
-    int nextIndex;
-    do {
-      nextIndex = DateTime.now().millisecondsSinceEpoch % _currentPlaylist.length;
-    } while (nextIndex == _currentIndex && _currentPlaylist.length > 1);
+    // Mark current index as played
+    if (_currentIndex >= 0) {
+      _playedIndices.add(_currentIndex);
+    }
     
-    return nextIndex;
+    // If all tracks have been played, reset and allow repeats
+    if (_playedIndices.length >= _currentPlaylist.length) {
+      _playedIndices = {};
+    }
+    
+    // Get list of unplayed indices
+    final unplayedIndices = List<int>.generate(_currentPlaylist.length, (i) => i)
+        .where((i) => !_playedIndices.contains(i))
+        .toList();
+    
+    if (unplayedIndices.isEmpty) {
+      // Fallback: all tracks played, pick any random one
+      return _random.nextInt(_currentPlaylist.length);
+    }
+    
+    // Pick a random unplayed track
+    return unplayedIndices[_random.nextInt(unplayedIndices.length)];
   }
 
   /// Play or pause current track
